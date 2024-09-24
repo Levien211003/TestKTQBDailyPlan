@@ -43,16 +43,16 @@ class _NavbarState extends State<Navbar> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'List',
+            icon: Icon(Icons.work),
+            label: 'Công Việc',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.star),
-            label: 'Favorite',
+            icon: Icon(Icons.calendar_month_outlined),
+            label: 'Lịch',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+            icon: Icon(Icons.settings),
+            label: 'Cài Đặt',
           ),
         ],
       ),
