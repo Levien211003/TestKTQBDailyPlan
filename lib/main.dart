@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:testktdailyplan/login_screen.dart';
 import 'navbar.dart'; // Import Navbar
 
 void main() {
@@ -9,7 +10,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Navbar(), // Đặt Navbar là màn hình chính
+      home: LoginScreen(),
     );
   }
 }
