@@ -11,6 +11,7 @@ class Navbar extends StatefulWidget {
 
 class _NavbarState extends State<Navbar> {
   int navBarIndex = 0;
+  bool isDarkMode = false; // Trạng thái dark mode ban đầu
 
   void _onItemTapped(int index) {
     setState(() {
@@ -18,12 +19,18 @@ class _NavbarState extends State<Navbar> {
     });
   }
 
+  void _toggleDarkMode(bool value) {
+    setState(() {
+      isDarkMode = value; // Cập nhật trạng thái dark mode
+    });
+  }
+
   // Mảng các màn hình, thêm các màn hình khác nếu cần
-  final List<Widget> _screens = [
-    HomeScreen(),
-    ListScreen(),
-    FavoriteScreen(),
-    SettingScreen(),
+  List<Widget> get _screens => [
+    HomeScreen(isDarkMode: isDarkMode), // Truyền tham số isDarkMode
+    ListScreen(), // Truyền tham số isDarkMode
+    FavoriteScreen(), // Truyền tham số isDarkMode
+    SettingScreen(isDarkMode: isDarkMode, onDarkModeChanged: _toggleDarkMode), // Truyền tham số và callback
   ];
 
   @override

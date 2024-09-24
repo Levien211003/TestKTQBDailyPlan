@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class HomeScreen extends StatefulWidget {
+  final bool isDarkMode; // Thêm tham số isDarkMode
+
+  HomeScreen({required this.isDarkMode}); // Khởi tạo với isDarkMode
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -13,8 +17,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF212020),
-      body: SingleChildScrollView( // Bọc bằng SingleChildScrollView
+      backgroundColor: widget.isDarkMode ? Color(0xFF212020) : Colors.white, // Sử dụng isDarkMode để xác định màu nền
+      body: SingleChildScrollView(
         child: Column(
           children: [
             SizedBox(height: 50),
@@ -26,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     'Daily Planner',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: widget.isDarkMode ? Colors.white : Colors.black, // Thay đổi màu chữ
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Poppins',
@@ -34,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   Icon(
                     Icons.notifications,
-                    color: Colors.white,
+                    color: widget.isDarkMode ? Colors.white : Colors.black, // Thay đổi màu icon
                   ),
                 ],
               ),
@@ -62,30 +66,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.green,
                   shape: BoxShape.circle,
                 ),
-                defaultTextStyle: TextStyle(color: Colors.white),
-                weekendTextStyle: TextStyle(color: Colors.white),
+                defaultTextStyle: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black), // Thay đổi màu chữ
+                weekendTextStyle: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black), // Thay đổi màu chữ
               ),
               headerStyle: HeaderStyle(
                 formatButtonVisible: false,
                 titleCentered: true,
                 titleTextStyle: TextStyle(
-                  color: Colors.white,
+                  color: widget.isDarkMode ? Colors.white : Colors.black, // Thay đổi màu chữ tiêu đề
                   fontSize: 18,
                 ),
                 leftChevronIcon: Icon(
                   Icons.chevron_left,
-                  color: Colors.white,
+                  color: widget.isDarkMode ? Colors.white : Colors.black, // Thay đổi màu icon
                 ),
                 rightChevronIcon: Icon(
                   Icons.chevron_right,
-                  color: Colors.white,
+                  color: widget.isDarkMode ? Colors.white : Colors.black, // Thay đổi màu icon
                 ),
               ),
               calendarFormat: CalendarFormat.month,
               startingDayOfWeek: StartingDayOfWeek.monday,
               daysOfWeekStyle: DaysOfWeekStyle(
-                weekendStyle: TextStyle(color: Colors.white),
-                weekdayStyle: TextStyle(color: Colors.white),
+                weekendStyle: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black), // Thay đổi màu chữ
+                weekdayStyle: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black), // Thay đổi màu chữ
               ),
             ),
             SizedBox(height: 20),
@@ -98,7 +102,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             SizedBox(height: 20),
-            // Đảm bảo bạn không đặt Container quá lớn hoặc không có khả năng cuộn
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
@@ -140,7 +143,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 
   // Widget tạo nút hành động
   Widget _buildActionButton(IconData icon, String label) {

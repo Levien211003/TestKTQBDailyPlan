@@ -1,11 +1,24 @@
 import 'package:flutter/material.dart';
 
 class SettingScreen extends StatefulWidget {
+  final bool isDarkMode; // Nhận trạng thái dark mode từ ngoài
+  final Function(bool) onDarkModeChanged; // Hàm callback để thông báo về sự thay đổi
+
+  SettingScreen({required this.isDarkMode, required this.onDarkModeChanged});
+
   @override
   _SettingScreenState createState() => _SettingScreenState();
 }
 
 class _SettingScreenState extends State<SettingScreen> {
+  late bool isDarkMode;
+
+  @override
+  void initState() {
+    super.initState();
+    isDarkMode = widget.isDarkMode;
+  }
+
   bool weatherEnabled = false;
   bool notificationEnabled = true;
   bool alarmEnabled = true;
@@ -13,10 +26,11 @@ class _SettingScreenState extends State<SettingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF212020), // Nền tối
+      backgroundColor: isDarkMode ? Color(0xFF212020) : Colors.white, // Nền sáng/tối tùy thuộc vào dark mode
       appBar: AppBar(
         title: Text('Cài Đặt'),
-        backgroundColor: Color(0xFF44462E), // Màu của AppBar
+        backgroundColor: isDarkMode ? Color(0xFF44462E) : Color(0xFF67A867), // Màu của AppBar
+        automaticallyImplyLeading: false, // Không tự động thêm nút trở về
       ),
       body: ListView(
         padding: EdgeInsets.all(16),
@@ -44,13 +58,20 @@ class _SettingScreenState extends State<SettingScreen> {
           }),
           _buildSettingsItem(Icons.article, 'Điều khoản'),
           _buildSettingsItem(Icons.security, 'Chính sách bảo mật'),
+          // Nút Dark Mode
+          _buildSwitchItem(Icons.dark_mode, 'Dark Mode', isDarkMode, (value) {
+            setState(() {
+              isDarkMode = value;
+              widget.onDarkModeChanged(value); // Gọi hàm callback
+            });
+          }),
 
           SizedBox(height: 20),
           // Container chứa các mục "Theo dõi tôi"
           Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Color(0xFF44462E), // Màu nền của Container
+              color: isDarkMode ? Color(0xFF44462E) : Color(0xFFE0E0E0), // Màu nền của Container tùy thuộc vào dark mode
               borderRadius: BorderRadius.circular(10),
             ),
             child: Column(
@@ -83,9 +104,12 @@ class _SettingScreenState extends State<SettingScreen> {
       leading: Icon(icon, color: Color(0xFFE2F163)),
       title: Text(
         title,
-        style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+        style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+            fontFamily: 'Poppins'
+        ),
       ),
-      trailing: Icon(Icons.arrow_forward_ios, color: Colors.white),
+      trailing: Icon(Icons.arrow_forward_ios, color: isDarkMode ? Colors.white : Colors.black),
       onTap: () {
         // Xử lý sự kiện khi click vào mục cài đặt
       },
@@ -98,7 +122,10 @@ class _SettingScreenState extends State<SettingScreen> {
       leading: Icon(icon, color: Color(0xFFE2F163)),
       title: Text(
         title,
-        style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+        style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+            fontFamily: 'Poppins'
+        ),
       ),
       trailing: Switch(
         value: value,
@@ -114,7 +141,10 @@ class _SettingScreenState extends State<SettingScreen> {
       leading: Icon(icon, color: Color(0xFFE2F163)),
       title: Text(
         title,
-        style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+        style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+            fontFamily: 'Poppins'
+        ),
       ),
       onTap: () {
         // Xử lý sự kiện khi click vào các mục social
