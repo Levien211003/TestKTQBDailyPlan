@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'list_screen.dart';
-import 'favorite_screen.dart';
+import 'challenge_screen.dart';
 import 'setting_screen.dart';
 
 class Navbar extends StatefulWidget {
@@ -29,7 +29,7 @@ class _NavbarState extends State<Navbar> {
   List<Widget> get _screens => [
     HomeScreen(isDarkMode: isDarkMode), // Truyền tham số isDarkMode
     ListScreen(), // Truyền tham số isDarkMode
-    FavoriteScreen(), // Truyền tham số isDarkMode
+    ChallengeScreen(isDarkMode: isDarkMode), // Truyền tham số isDarkMode
     SettingScreen(isDarkMode: isDarkMode, onDarkModeChanged: _toggleDarkMode), // Truyền tham số và callback
   ];
 
@@ -46,16 +46,16 @@ class _NavbarState extends State<Navbar> {
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Trang Chủ',
+            icon: Icon(Icons.calendar_month_outlined),
+            label: 'Lịch',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.work),
             label: 'Công Việc',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month_outlined),
-            label: 'Lịch',
+            icon: Icon(Icons.bar_chart),
+            label: 'Thử Thách',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),

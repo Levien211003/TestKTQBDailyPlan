@@ -27,13 +27,17 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Daily Planner',
-                    style: TextStyle(
-                      color: widget.isDarkMode ? Colors.white : Colors.black, // Thay đổi màu chữ
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Poppins',
+                  Expanded( // Sử dụng Expanded để cho phép căn giữa
+                    child: Center( // Căn giữa chữ "Daily Planner"
+                      child: Text(
+                        'DAILY PLANNER', // Chữ in hoa
+                        style: TextStyle(
+                          color: widget.isDarkMode ? Colors.white : Colors.black, // Thay đổi màu chữ
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
                     ),
                   ),
                   Icon(

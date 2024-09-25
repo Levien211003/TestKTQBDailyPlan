@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingScreen extends StatefulWidget {
   final bool isDarkMode; // Nhận trạng thái dark mode từ ngoài
@@ -26,11 +27,19 @@ class _SettingScreenState extends State<SettingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: isDarkMode ? Color(0xFF212020) : Colors.white, // Nền sáng/tối tùy thuộc vào dark mode
+      backgroundColor: isDarkMode ? Color(0xFF212020) : Colors.white,
       appBar: AppBar(
-        title: Text('Cài Đặt'),
-        backgroundColor: isDarkMode ? Color(0xFF44462E) : Color(0xFF67A867), // Màu của AppBar
-        automaticallyImplyLeading: false, // Không tự động thêm nút trở về
+        title: Center(
+          child: Text(
+            'CÀI ĐẶT',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isDarkMode ? Colors.white : Colors.black,
+            ),
+          ),
+        ),
+        backgroundColor: isDarkMode ? Color(0xFF44462E) : Colors.white,
+        automaticallyImplyLeading: false,
       ),
       body: ListView(
         padding: EdgeInsets.all(16),
@@ -62,7 +71,7 @@ class _SettingScreenState extends State<SettingScreen> {
           _buildSwitchItem(Icons.dark_mode, 'Dark Mode', isDarkMode, (value) {
             setState(() {
               isDarkMode = value;
-              widget.onDarkModeChanged(value); // Gọi hàm callback
+              widget.onDarkModeChanged(value);
             });
           }),
 
@@ -71,7 +80,7 @@ class _SettingScreenState extends State<SettingScreen> {
           Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDarkMode ? Color(0xFF44462E) : Color(0xFFE0E0E0), // Màu nền của Container tùy thuộc vào dark mode
+              color: isDarkMode ? Color(0xFF44462E) : Color(0xFFE0E0E0),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Column(
@@ -80,16 +89,16 @@ class _SettingScreenState extends State<SettingScreen> {
                 Text(
                   'Theo dõi tôi',
                   style: TextStyle(
-                    color: Color(0xFFE2F163),
+                    color: isDarkMode ? Colors.white : Colors.black,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Poppins',
                   ),
                 ),
                 SizedBox(height: 10),
-                _buildSocialItem(Icons.video_library, 'Youtube'),
-                _buildSocialItem(Icons.facebook, 'Facebook'),
-                _buildSocialItem(Icons.camera_alt, 'Instagram'),
+                _buildSocialItem(Icons.video_library, 'Youtube', 'https://www.youtube.com/@leviennguyen5093'),
+                _buildSocialItem(Icons.facebook, 'Facebook', 'https://www.facebook.com/sieucapvjppr0iubeDau.0602110'),
+                _buildSocialItem(Icons.camera_alt, 'Instagram', 'https://www.instagram.com/'), // Thay link Instagram nếu có
               ],
             ),
           ),
@@ -101,7 +110,7 @@ class _SettingScreenState extends State<SettingScreen> {
   // Widget cho mục cài đặt thông thường
   Widget _buildSettingsItem(IconData icon, String title) {
     return ListTile(
-      leading: Icon(icon, color: Color(0xFFE2F163)),
+      leading: Icon(icon, color: isDarkMode ? Color(0xFFE2F163) : Colors.green ),
       title: Text(
         title,
         style: TextStyle(
@@ -119,7 +128,7 @@ class _SettingScreenState extends State<SettingScreen> {
   // Widget cho mục cài đặt với switch
   Widget _buildSwitchItem(IconData icon, String title, bool value, Function(bool) onChanged) {
     return ListTile(
-      leading: Icon(icon, color: Color(0xFFE2F163)),
+      leading: Icon(icon, color: isDarkMode ? Color(0xFFE2F163) : Colors.green ),
       title: Text(
         title,
         style: TextStyle(
@@ -130,15 +139,15 @@ class _SettingScreenState extends State<SettingScreen> {
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: Color(0xFFE2F163),
+        activeColor: isDarkMode ? Color(0xFFE2F163) : Colors.green ,
       ),
     );
   }
 
   // Widget cho các mục "Theo dõi tôi"
-  Widget _buildSocialItem(IconData icon, String title) {
+  Widget _buildSocialItem(IconData icon, String title, String url) {
     return ListTile(
-      leading: Icon(icon, color: Color(0xFFE2F163)),
+      leading: Icon(icon, color: _getIconColor(title)), // Sử dụng màu sắc gốc
       title: Text(
         title,
         style: TextStyle(
@@ -146,9 +155,30 @@ class _SettingScreenState extends State<SettingScreen> {
             fontFamily: 'Poppins'
         ),
       ),
-      onTap: () {
-        // Xử lý sự kiện khi click vào các mục social
-      },
+      onTap: () => _launchURL(url), // Gọi hàm mở URL
     );
+  }
+
+  // Hàm mở URL
+  void _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Không thể mở $url';
+    }
+  }
+
+  // Hàm lấy màu icon theo tiêu đề
+  Color _getIconColor(String title) {
+    switch (title) {
+      case 'Youtube':
+        return Color(0xFFFF0000); // Màu gốc của YouTube
+      case 'Facebook':
+        return Color(0xFF4267B2); // Màu gốc của Facebook
+      case 'Instagram':
+        return Color(0xFFE1306C); // Màu gốc của Instagram
+      default:
+        return isDarkMode ? Color(0xFFE2F163) : Colors.green; // Màu mặc định
+    }
   }
 }
