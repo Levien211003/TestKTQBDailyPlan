@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'navbar.dart';
 import 'signup_screen.dart';
+import 'package:testktdailyplan/data/AuthService.dart'; // Import AuthService
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -10,6 +11,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final AuthService _authService = AuthService(); // Tạo đối tượng AuthService
+  String? _errorMessage; // Biến để chứa thông báo lỗi
 
   @override
   Widget build(BuildContext context) {
@@ -23,15 +26,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // GestureDetector(
-                  //   onTap: () {
-                  //     Navigator.pop(context);
-                  //   },
-                  //   child: Icon(
-                  //     Icons.arrow_back_ios,
-                  //     color: Color(0xFFE2F163),
-                  //   ),
-                  // ),
                   Spacer(),
                   Text(
                     'Đăng Nhập',
@@ -71,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               decoration: BoxDecoration(
                 color: Color(0xFF44462E),
-                borderRadius: BorderRadius.circular(10), // Bo tròn góc cho đẹp hơn
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,6 +127,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
+                  if (_errorMessage != null) // Hiển thị thông báo lỗi nếu có
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: Text(
+                        _errorMessage!,
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -144,12 +146,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 borderRadius: BorderRadius.circular(30),
               ),
               child: InkWell(
-                onTap: () {
-                  // Thay thế logic đăng nhập API bằng logic dẫn tới navbar
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Navbar()),
+                onTap: () async {
+                  // Gọi hàm login từ AuthService
+                  final response = await _authService.login(
+                    usernameController.text,
+                    passwordController.text,
                   );
+
+                  if (response != null) {
+                    // Chuyển hướng đến Navbar nếu đăng nhập thành công
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Navbar()),
+                    );
+                  } else {
+                    // Hiển thị thông báo lỗi nếu đăng nhập không thành công
+                    setState(() {
+                      _errorMessage = 'Đăng nhập không thành công!'; // Cập nhật thông báo lỗi
+                    });
+                  }
                 },
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),

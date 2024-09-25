@@ -28,7 +28,7 @@ class _NavbarState extends State<Navbar> {
   // Mảng các màn hình, thêm các màn hình khác nếu cần
   List<Widget> get _screens => [
     HomeScreen(isDarkMode: isDarkMode), // Truyền tham số isDarkMode
-    ListScreen(), // Truyền tham số isDarkMode
+    ListScreen(isDarkMode: isDarkMode), // Truyền tham số isDarkMode
     ChallengeScreen(isDarkMode: isDarkMode), // Truyền tham số isDarkMode
     SettingScreen(isDarkMode: isDarkMode, onDarkModeChanged: _toggleDarkMode), // Truyền tham số và callback
   ];

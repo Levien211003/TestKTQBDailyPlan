@@ -147,7 +147,9 @@ class _CreateChallenge2State extends State<CreateChallenge2> {
                         });
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Ngày kết thúc phải sau ngày bắt đầu!')),
+                          SnackBar(
+                              content:
+                                  Text('Ngày kết thúc phải sau ngày bắt đầu!')),
                         );
                       }
                     });
@@ -330,7 +332,8 @@ class _CreateChallenge2State extends State<CreateChallenge2> {
   }
 
   // Select date function
-  void _selectDate(BuildContext context, String title, Function(DateTime) onDateSelected) {
+  void _selectDate(
+      BuildContext context, String title, Function(DateTime) onDateSelected) {
     showDatePicker(
       context: context,
       initialDate: DateTime.now(),

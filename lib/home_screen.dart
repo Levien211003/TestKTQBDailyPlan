@@ -17,7 +17,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: widget.isDarkMode ? Color(0xFF212020) : Colors.white, // Sử dụng isDarkMode để xác định màu nền
+      backgroundColor: widget.isDarkMode ? Color(0xFF212020) : Colors.white,
+      // Sử dụng isDarkMode để xác định màu nền
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -27,12 +28,16 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded( // Sử dụng Expanded để cho phép căn giữa
-                    child: Center( // Căn giữa chữ "Daily Planner"
+                  Expanded(
+                    // Sử dụng Expanded để cho phép căn giữa
+                    child: Center(
+                      // Căn giữa chữ "Daily Planner"
                       child: Text(
                         'DAILY PLANNER', // Chữ in hoa
                         style: TextStyle(
-                          color: widget.isDarkMode ? Colors.white : Colors.black, // Thay đổi màu chữ
+                          color: widget.isDarkMode
+                              ? Colors.white
+                              : Colors.black, // Thay đổi màu chữ
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Poppins',
@@ -42,7 +47,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   Icon(
                     Icons.notifications,
-                    color: widget.isDarkMode ? Colors.white : Colors.black, // Thay đổi màu icon
+                    color: widget.isDarkMode
+                        ? Colors.white
+                        : Colors.black, // Thay đổi màu icon
                   ),
                 ],
               ),
@@ -70,30 +77,45 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.green,
                   shape: BoxShape.circle,
                 ),
-                defaultTextStyle: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black), // Thay đổi màu chữ
-                weekendTextStyle: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black), // Thay đổi màu chữ
+                defaultTextStyle: TextStyle(
+                    color: widget.isDarkMode ? Colors.white : Colors.black),
+                // Thay đổi màu chữ
+                weekendTextStyle: TextStyle(
+                    color: widget.isDarkMode
+                        ? Colors.white
+                        : Colors.black), // Thay đổi màu chữ
               ),
               headerStyle: HeaderStyle(
                 formatButtonVisible: false,
                 titleCentered: true,
                 titleTextStyle: TextStyle(
-                  color: widget.isDarkMode ? Colors.white : Colors.black, // Thay đổi màu chữ tiêu đề
+                  color: widget.isDarkMode ? Colors.white : Colors.black,
+                  // Thay đổi màu chữ tiêu đề
                   fontSize: 18,
                 ),
                 leftChevronIcon: Icon(
                   Icons.chevron_left,
-                  color: widget.isDarkMode ? Colors.white : Colors.black, // Thay đổi màu icon
+                  color: widget.isDarkMode
+                      ? Colors.white
+                      : Colors.black, // Thay đổi màu icon
                 ),
                 rightChevronIcon: Icon(
                   Icons.chevron_right,
-                  color: widget.isDarkMode ? Colors.white : Colors.black, // Thay đổi màu icon
+                  color: widget.isDarkMode
+                      ? Colors.white
+                      : Colors.black, // Thay đổi màu icon
                 ),
               ),
               calendarFormat: CalendarFormat.month,
               startingDayOfWeek: StartingDayOfWeek.monday,
               daysOfWeekStyle: DaysOfWeekStyle(
-                weekendStyle: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black), // Thay đổi màu chữ
-                weekdayStyle: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black), // Thay đổi màu chữ
+                weekendStyle: TextStyle(
+                    color: widget.isDarkMode ? Colors.white : Colors.black),
+                // Thay đổi màu chữ
+                weekdayStyle: TextStyle(
+                    color: widget.isDarkMode
+                        ? Colors.white
+                        : Colors.black), // Thay đổi màu chữ
               ),
             ),
             SizedBox(height: 20),
@@ -105,6 +127,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildActionButton(Icons.calendar_today, 'Schedule'),
               ],
             ),
+
+            ////Today Task
             SizedBox(height: 20),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -136,9 +160,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   SizedBox(height: 10),
-                  _buildTaskItem('Complete Flutter project', true),
-                  _buildTaskItem('Morning Exercise', false),
-                  _buildTaskItem('Read 20 pages of book', false),
+                  // _buildTaskItem('Complete Flutter project', true),
+                  // _buildTaskItem('Morning Exercise', false),
+                  // _buildTaskItem('Read 20 pages of book', false),
                 ],
               ),
             ),
@@ -169,28 +193,28 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
     );
   }
-
-  // Widget tạo mục công việc
-  Widget _buildTaskItem(String taskName, bool completed) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(
-            completed ? Icons.check_circle : Icons.radio_button_unchecked,
-            color: completed ? Colors.green : Colors.white,
-          ),
-          SizedBox(width: 10),
-          Text(
-            taskName,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontFamily: 'Poppins',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  //
+  // // Widget tạo mục công việc
+  // Widget _buildTaskItem(String taskName, bool completed) {
+  //   return Padding(
+  //     padding: const EdgeInsets.symmetric(vertical: 8.0),
+  //     child: Row(
+  //       children: [
+  //         Icon(
+  //           completed ? Icons.check_circle : Icons.radio_button_unchecked,
+  //           color: completed ? Colors.green : Colors.white,
+  //         ),
+  //         SizedBox(width: 10),
+  //         Text(
+  //           taskName,
+  //           style: TextStyle(
+  //             color: Colors.white,
+  //             fontSize: 16,
+  //             fontFamily: 'Poppins',
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 }

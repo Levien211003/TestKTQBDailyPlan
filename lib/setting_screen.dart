@@ -3,7 +3,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 class SettingScreen extends StatefulWidget {
   final bool isDarkMode; // Nhận trạng thái dark mode từ ngoài
-  final Function(bool) onDarkModeChanged; // Hàm callback để thông báo về sự thay đổi
+  final Function(bool)
+      onDarkModeChanged; // Hàm callback để thông báo về sự thay đổi
 
   SettingScreen({required this.isDarkMode, required this.onDarkModeChanged});
 
@@ -55,7 +56,8 @@ class _SettingScreenState extends State<SettingScreen> {
             });
           }),
           _buildSettingsItem(Icons.lock, 'Mật khẩu'),
-          _buildSwitchItem(Icons.notifications, 'Thông báo', notificationEnabled, (value) {
+          _buildSwitchItem(
+              Icons.notifications, 'Thông báo', notificationEnabled, (value) {
             setState(() {
               notificationEnabled = value;
             });
@@ -96,9 +98,12 @@ class _SettingScreenState extends State<SettingScreen> {
                   ),
                 ),
                 SizedBox(height: 10),
-                _buildSocialItem(Icons.video_library, 'Youtube', 'https://www.youtube.com/@leviennguyen5093'),
-                _buildSocialItem(Icons.facebook, 'Facebook', 'https://www.facebook.com/sieucapvjppr0iubeDau.0602110'),
-                _buildSocialItem(Icons.camera_alt, 'Instagram', 'https://www.instagram.com/'), // Thay link Instagram nếu có
+                _buildSocialItem(Icons.video_library, 'Youtube',
+                    'https://www.youtube.com/@leviennguyen5093'),
+                _buildSocialItem(Icons.facebook, 'Facebook',
+                    'https://www.facebook.com/sieucapvjppr0iubeDau.0602110'),
+                _buildSocialItem(Icons.discord, 'Discord',
+                    'https://www.discord.com/'), // Thay link Instagram nếu có
               ],
             ),
           ),
@@ -110,15 +115,15 @@ class _SettingScreenState extends State<SettingScreen> {
   // Widget cho mục cài đặt thông thường
   Widget _buildSettingsItem(IconData icon, String title) {
     return ListTile(
-      leading: Icon(icon, color: isDarkMode ? Color(0xFFE2F163) : Colors.green ),
+      leading: Icon(icon, color: isDarkMode ? Color(0xFFE2F163) : Colors.green),
       title: Text(
         title,
         style: TextStyle(
             color: isDarkMode ? Colors.white : Colors.black,
-            fontFamily: 'Poppins'
-        ),
+            fontFamily: 'Poppins'),
       ),
-      trailing: Icon(Icons.arrow_forward_ios, color: isDarkMode ? Colors.white : Colors.black),
+      trailing: Icon(Icons.arrow_forward_ios,
+          color: isDarkMode ? Colors.white : Colors.black),
       onTap: () {
         // Xử lý sự kiện khi click vào mục cài đặt
       },
@@ -126,20 +131,20 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   // Widget cho mục cài đặt với switch
-  Widget _buildSwitchItem(IconData icon, String title, bool value, Function(bool) onChanged) {
+  Widget _buildSwitchItem(
+      IconData icon, String title, bool value, Function(bool) onChanged) {
     return ListTile(
-      leading: Icon(icon, color: isDarkMode ? Color(0xFFE2F163) : Colors.green ),
+      leading: Icon(icon, color: isDarkMode ? Color(0xFFE2F163) : Colors.green),
       title: Text(
         title,
         style: TextStyle(
             color: isDarkMode ? Colors.white : Colors.black,
-            fontFamily: 'Poppins'
-        ),
+            fontFamily: 'Poppins'),
       ),
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: isDarkMode ? Color(0xFFE2F163) : Colors.green ,
+        activeColor: isDarkMode ? Color(0xFFE2F163) : Colors.green,
       ),
     );
   }
@@ -152,8 +157,7 @@ class _SettingScreenState extends State<SettingScreen> {
         title,
         style: TextStyle(
             color: isDarkMode ? Colors.white : Colors.black,
-            fontFamily: 'Poppins'
-        ),
+            fontFamily: 'Poppins'),
       ),
       onTap: () => _launchURL(url), // Gọi hàm mở URL
     );
@@ -175,8 +179,8 @@ class _SettingScreenState extends State<SettingScreen> {
         return Color(0xFFFF0000); // Màu gốc của YouTube
       case 'Facebook':
         return Color(0xFF4267B2); // Màu gốc của Facebook
-      case 'Instagram':
-        return Color(0xFFE1306C); // Màu gốc của Instagram
+      case 'Discord':
+        return Color(0xFF7D31F6); // Màu gốc của Instagram
       default:
         return isDarkMode ? Color(0xFFE2F163) : Colors.green; // Màu mặc định
     }

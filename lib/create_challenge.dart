@@ -8,7 +8,8 @@ class CreateChallenge extends StatelessWidget {
       appBar: AppBar(
         title: Text('Tạo'),
       ),
-      body: SingleChildScrollView( // Add scroll view here
+      body: SingleChildScrollView(
+        // Add scroll view here
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -28,7 +29,8 @@ class CreateChallenge extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => CreateChallenge2(isRecurring: true),
+                          builder: (context) =>
+                              CreateChallenge2(isRecurring: true),
                         ),
                       );
                     },
@@ -57,7 +59,8 @@ class CreateChallenge extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => CreateChallenge2(isRecurring: false),
+                          builder: (context) =>
+                              CreateChallenge2(isRecurring: false),
                         ),
                       );
                     },
@@ -95,8 +98,10 @@ class CreateChallenge extends StatelessWidget {
                 childAspectRatio: 1, // Tỉ lệ 1:1 cho các container vuông
               ),
               itemCount: 6,
-              shrinkWrap: true, // Để grid view không chiếm quá nhiều không gian
-              physics: NeverScrollableScrollPhysics(), // Tắt cuộn
+              shrinkWrap: true,
+              // Để grid view không chiếm quá nhiều không gian
+              physics: NeverScrollableScrollPhysics(),
+              // Tắt cuộn
               itemBuilder: (context, index) {
                 return Container(
                   decoration: BoxDecoration(

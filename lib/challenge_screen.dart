@@ -16,8 +16,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   late ScrollController _scrollController;
   late List<DateTime> dates;
   late int currentDateIndex;
-  String selectedMonth = ""; // Biến để lưu tháng hiện tại
-  late DateTime selectedDate; // Ngày được chọn
+  String selectedMonth = "";
+  late DateTime selectedDate; 
 
   @override
   void initState() {
@@ -29,13 +29,14 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
     // Tìm chỉ số của ngày hôm nay
     currentDateIndex = dates.indexWhere((date) =>
-    date.year == DateTime.now().year &&
+        date.year == DateTime.now().year &&
         date.month == DateTime.now().month &&
         date.day == DateTime.now().day);
 
     // Đặt vị trí cuộn về giữa danh sách (ngày hôm nay)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollController.jumpTo(currentDateIndex * 88.0); // Chiều rộng của từng item
+      _scrollController
+          .jumpTo(currentDateIndex * 88.0); // Chiều rộng của từng item
     });
 
     // Thiết lập tháng hiện tại là tháng của ngày hôm nay
@@ -128,8 +129,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.add, color: isDarkMode ? Colors.white : Colors.black),
-                  onPressed: _navigateToCreateChallenge, // Điều hướng tới CreateChallenge
+                  icon: Icon(Icons.add,
+                      color: isDarkMode ? Colors.white : Colors.black),
+                  onPressed:
+                      _navigateToCreateChallenge, // Điều hướng tới CreateChallenge
                 ),
               ],
             ),
@@ -141,7 +144,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               height: 100, // Chiều cao cố định cho thanh lịch
               padding: EdgeInsets.symmetric(vertical: 10),
               child: ScrollConfiguration(
-                behavior: ScrollBehavior().copyWith(overscroll: true), // Loại bỏ hiệu ứng cuộn
+                behavior: ScrollBehavior().copyWith(overscroll: true),
+                // Loại bỏ hiệu ứng cuộn
                 child: ListView.builder(
                   controller: _scrollController,
                   scrollDirection: Axis.horizontal,
@@ -162,15 +166,16 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     return GestureDetector(
                       onTap: () => _onDateTap(index),
                       child: Container(
-                        width: 80, // Chiều rộng cố định cho mỗi item
+                        width: 80,
+                        // Chiều rộng cố định cho mỗi item
                         margin: EdgeInsets.symmetric(horizontal: 4),
                         padding: EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: isToday
                               ? Colors.blue
                               : (isDarkMode
-                              ? Colors.grey[800]
-                              : Colors.grey[300]),
+                                  ? Colors.grey[800]
+                                  : Colors.grey[300]),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
@@ -178,10 +183,12 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                           children: [
                             if (monthDisplay.isNotEmpty)
                               Text(
-                                monthDisplay, // Hiển thị tháng nếu không cùng tháng với hôm nay
+                                monthDisplay,
+                                // Hiển thị tháng nếu không cùng tháng với hôm nay
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: isDarkMode ? Colors.white : Colors.black,
+                                  color:
+                                      isDarkMode ? Colors.white : Colors.black,
                                 ),
                               ),
                             Text(
@@ -194,8 +201,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                                 color: isToday
                                     ? Colors.white
                                     : (isDarkMode
-                                    ? Colors.white
-                                    : Colors.black),
+                                        ? Colors.white
+                                        : Colors.black),
                               ),
                             ),
                             Text(
@@ -229,7 +236,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Icon(Icons.create, size: 40, color: Colors.blue), // Biểu tượng hoạt động
+                Icon(Icons.create, size: 40, color: Colors.blue),
+                // Biểu tượng hoạt động
                 SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,7 +251,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       ),
                     ),
                     Text(
-                      DateFormat('EEEE, dd/MM/yyyy').format(selectedDate), // Ngày tháng
+                      DateFormat('EEEE, dd/MM/yyyy').format(selectedDate),
+                      // Ngày tháng
                       style: TextStyle(
                         fontSize: 14,
                         color: isDarkMode ? Colors.white70 : Colors.black54,
