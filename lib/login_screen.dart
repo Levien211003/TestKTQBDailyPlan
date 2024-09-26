@@ -148,24 +148,36 @@ class _LoginScreenState extends State<LoginScreen> {
               child: InkWell(
                 onTap: () async {
                   // Gọi hàm login từ AuthService
-                  final response = await _authService.login(
+                  final user = await _authService.login(
                     usernameController.text,
                     passwordController.text,
                   );
 
-                  if (response != null) {
+                  if (user != null && user['userID'] != null) {
+                    // Hiển thị SnackBar chào mừng
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Chào mừng, ${usernameController.text}!'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+
                     // Chuyển hướng đến Navbar nếu đăng nhập thành công
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => Navbar()),
+                      MaterialPageRoute(
+                        builder: (context) => Navbar(userId: user['userID']), // Truyền userId
+                      ),
                     );
                   } else {
                     // Hiển thị thông báo lỗi nếu đăng nhập không thành công
                     setState(() {
-                      _errorMessage = 'Đăng nhập không thành công!'; // Cập nhật thông báo lỗi
+                      _errorMessage = 'Đăng nhập không thành công!';
                     });
                   }
                 },
+
+
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                   child: Text(

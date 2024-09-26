@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:testktdailyplan/data/AuthService.dart';
+import 'package:testktdailyplan/model/task.dart';
+import 'addtask.dart';
+import 'dart:math'; // Thêm import này
 
 class ListScreen extends StatefulWidget {
   final bool isDarkMode;
+  final int userId;
 
-  ListScreen({required this.isDarkMode});
+  ListScreen({required this.isDarkMode, required this.userId});
 
   @override
   _ListScreenState createState() => _ListScreenState();
@@ -17,6 +22,37 @@ class _ListScreenState extends State<ListScreen> {
   late int currentDateIndex;
   String selectedMonth = "";
   late DateTime selectedDate;
+  List<Task> tasks = [];
+  List<Task> filteredTasks = [];
+  bool isLoading = true;
+  final AuthService _authService = AuthService();
+
+  // Danh sách biểu tượng và màu sắc
+  final List<IconData> _icons = [
+    Icons.star,
+    Icons.favorite,
+    Icons.alarm,
+    Icons.local_grocery_store,
+    Icons.lightbulb,
+    Icons.work,
+    Icons.person,
+    Icons.email,
+    Icons.camera,
+    Icons.check_circle,
+  ];
+
+  final List<Color> _colors = [
+    Colors.red,
+    Colors.blue,
+    Colors.green,
+    Colors.orange,
+    Colors.purple,
+    Colors.yellow,
+    Colors.teal,
+    Colors.pink,
+    Colors.brown,
+    Colors.cyan,
+  ];
 
   @override
   void initState() {
@@ -24,60 +60,79 @@ class _ListScreenState extends State<ListScreen> {
     isDarkMode = widget.isDarkMode;
     _scrollController = ScrollController();
     dates = getDates();
-    selectedDate = DateTime.now(); // Mặc định chọn ngày hôm nay
+    selectedDate = DateTime.now();
 
-    // Tìm chỉ số của ngày hôm nay
     currentDateIndex = dates.indexWhere((date) =>
-        date.year == DateTime.now().year &&
+    date.year == DateTime.now().year &&
         date.month == DateTime.now().month &&
         date.day == DateTime.now().day);
 
-    // Đặt vị trí cuộn về giữa danh sách (ngày hôm nay)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollController
-          .jumpTo(currentDateIndex * 88.0); // Chiều rộng của từng item
+      double screenWidth = MediaQuery.of(context).size.width;
+      double itemWidth = 88.0;
+      double centerOffset = (screenWidth / 2) - (itemWidth / 2);
+      double scrollPosition = (currentDateIndex * itemWidth) - centerOffset;
+      _scrollController.jumpTo(scrollPosition);
     });
 
-    // Thiết lập tháng hiện tại là tháng của ngày hôm nay
     selectedMonth = DateFormat('MMMM').format(DateTime.now());
+    _fetchTasks();
+  }
+
+  Future<void> _fetchTasks() async {
+    final fetchedTasks = await _authService.getTasksByUser(widget.userId);
+    setState(() {
+      tasks = fetchedTasks ?? [];
+      isLoading = false;
+      filteredTasks = _filterTasksBySelectedDate();
+    });
   }
 
   List<DateTime> getDates() {
-    List<DateTime> dates = [];
     DateTime today = DateTime.now();
+    return List.generate(15, (index) => today.add(Duration(days: index)));
+  }
 
-    // Tạo danh sách ngày với 182 ngày trước và 182 ngày sau
-    for (int i = -182; i <= 182; i++) {
-      dates.add(today.add(Duration(days: i)));
-    }
-
-    return dates;
+  void _refreshTasks() {
+    _fetchTasks();
   }
 
   void _onDateTap(int index) {
     setState(() {
       currentDateIndex = index;
       selectedDate = dates[index];
-      // Cập nhật tháng khi người dùng nhấn vào ngày
       selectedMonth = DateFormat('MMMM').format(selectedDate);
+      filteredTasks = _filterTasksBySelectedDate();
     });
-    // Xử lý sự kiện nhấn vào ngày, có thể thêm logic ở đây
-    print('Selected Date: $selectedDate');
+
+    double screenWidth = MediaQuery.of(context).size.width;
+    double itemWidth = 88.0;
+    double centerOffset = (screenWidth / 2) - (itemWidth / 2);
+    double scrollPosition = (index * itemWidth) - centerOffset;
+    _scrollController.animateTo(scrollPosition,
+        duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+  }
+
+  List<Task> _filterTasksBySelectedDate() {
+    return tasks.where((task) {
+      DateTime start = task.startDate;
+      DateTime end = task.endDate;
+
+      return (start.year == selectedDate.year &&
+          start.month == selectedDate.month &&
+          start.day == selectedDate.day) ||
+          (end.year == selectedDate.year &&
+              end.month == selectedDate.month &&
+              end.day == selectedDate.day) ||
+          (start.isBefore(selectedDate) && end.isAfter(selectedDate));
+    }).toList();
   }
 
   void _onSwipe(DragUpdateDetails details) {
-    if (details.delta.dx > 0) {
-      // Vuốt sang trái
-      if (currentDateIndex > 0) {
-        _scrollController.jumpTo(_scrollController.position.pixels - 88);
-        _onDateTap(currentDateIndex - 1);
-      }
-    } else if (details.delta.dx < 0) {
-      // Vuốt sang phải
-      if (currentDateIndex < dates.length - 1) {
-        _scrollController.jumpTo(_scrollController.position.pixels + 88);
-        _onDateTap(currentDateIndex + 1);
-      }
+    if (details.delta.dx > 0 && currentDateIndex > 0) {
+      _onDateTap(currentDateIndex - 1);
+    } else if (details.delta.dx < 0 && currentDateIndex < dates.length - 1) {
+      _onDateTap(currentDateIndex + 1);
     }
   }
 
@@ -103,166 +158,189 @@ class _ListScreenState extends State<ListScreen> {
         backgroundColor: isDarkMode ? Color(0xFF44462E) : Colors.white,
         automaticallyImplyLeading: false,
       ),
-      body: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.all(10),
-            color: isDarkMode ? Color(0xFF44462E) : Colors.grey[200],
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  DateFormat('dd MMMM yyyy').format(DateTime.now()),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Container(
+        color: isDarkMode ? Colors.black : Colors.white,
+        child: Column(
+          children: [
+            Container(
+              padding: EdgeInsets.all(10),
+              color: isDarkMode ? Color(0xFF44462E) : Colors.grey[200],
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    DateFormat('dd MMMM yyyy').format(DateTime.now()),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                  )
+                ],
+              ),
+            ),
+            GestureDetector(
+              onHorizontalDragUpdate: _onSwipe,
+              child: Container(
+                height: 100,
+                padding: EdgeInsets.symmetric(vertical: 10),
+                child: ScrollConfiguration(
+                  behavior: ScrollBehavior().copyWith(overscroll: true),
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    scrollDirection: Axis.horizontal,
+                    itemCount: dates.length,
+                    itemBuilder: (context, index) {
+                      DateTime date = dates[index];
+                      String formattedDate = DateFormat('dd').format(date);
+                      String dayOfWeek = DateFormat('E').format(date);
+                      bool isToday = date.year == DateTime.now().year &&
+                          date.month == DateTime.now().month &&
+                          date.day == DateTime.now().day;
+
+                      String monthDisplay =
+                      (date.month != DateTime.now().month)
+                          ? DateFormat('MMMM').format(date)
+                          : '';
+
+                      return GestureDetector(
+                        onTap: () => _onDateTap(index),
+                        child: Container(
+                          width: 80,
+                          margin: EdgeInsets.symmetric(horizontal: 4),
+                          padding: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: selectedDate == date
+                                ? Colors.blue
+                                : (isDarkMode
+                                ? Colors.grey[800]
+                                : Colors.grey[300]),
+                            borderRadius: BorderRadius.circular(8),
+                            border: isToday && selectedDate != date
+                                ? Border.all(color: Colors.blue, width: 2)
+                                : Border.all(color: Colors.transparent),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (monthDisplay.isNotEmpty)
+                                Text(
+                                  monthDisplay,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Colors.grey,
+                                  ),
+                                ),
+                              Text(
+                                formattedDate,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: isToday
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  color: selectedDate == date
+                                      ? Colors.white
+                                      : (isDarkMode
+                                      ? Colors.white
+                                      : Colors.black),
+                                ),
+                              ),
+                              Text(
+                                dayOfWeek,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDarkMode
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
+                              ),
+                              if (isToday)
+                                Text(
+                                  "Today",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: selectedDate == date
+                                        ? Colors.white
+                                        : Colors.blue,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: filteredTasks.isEmpty
+                  ? Center(
+                child: Text(
+                  'No tasks found',
                   style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
                     color: isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
-              ],
-            ),
-          ),
-          // Phần hiển thị thanh lịch cuộn ngang
-          GestureDetector(
-            onHorizontalDragUpdate: _onSwipe,
-            child: Container(
-              height: 100, // Chiều cao cố định cho thanh lịch
-              padding: EdgeInsets.symmetric(vertical: 10),
-              child: ScrollConfiguration(
-                behavior: ScrollBehavior().copyWith(overscroll: true),
-                // Loại bỏ hiệu ứng cuộn
-                child: ListView.builder(
-                  controller: _scrollController,
-                  scrollDirection: Axis.horizontal,
-                  itemCount: dates.length,
-                  itemBuilder: (context, index) {
-                    DateTime date = dates[index];
-                    String formattedDate = DateFormat('dd').format(date);
-                    String dayOfWeek = DateFormat('E').format(date);
-                    bool isToday = date.year == DateTime.now().year &&
-                        date.month == DateTime.now().month &&
-                        date.day == DateTime.now().day;
+              )
+                  : ListView.builder(
+                itemCount: filteredTasks.length,
+                itemBuilder: (context, index) {
+                  Task task = filteredTasks[index];
 
-                    // Kiểm tra tháng của ngày hiện tại
-                    String monthDisplay = (date.month != DateTime.now().month)
-                        ? DateFormat('MMMM').format(date)
-                        : '';
+                  // Chọn ngẫu nhiên biểu tượng và màu sắc
+                  final randomIndex = Random().nextInt(_icons.length);
+                  IconData randomIcon = _icons[randomIndex];
+                  Color randomColor = _colors[randomIndex];
 
-                    return GestureDetector(
-                      onTap: () => _onDateTap(index),
-                      child: Container(
-                        width: 80,
-                        // Chiều rộng cố định cho mỗi item
-                        margin: EdgeInsets.symmetric(horizontal: 4),
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: isToday
-                              ? Colors.blue
-                              : (isDarkMode
-                                  ? Colors.grey[800]
-                                  : Colors.grey[300]),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (monthDisplay.isNotEmpty)
-                              Text(
-                                monthDisplay,
-                                // Hiển thị tháng nếu không cùng tháng với hôm nay
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color:
-                                      isDarkMode ? Colors.white : Colors.black,
-                                ),
-                              ),
-                            Text(
-                              formattedDate,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: isToday
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                color: isToday
-                                    ? Colors.white
-                                    : (isDarkMode
-                                        ? Colors.white
-                                        : Colors.black),
-                              ),
-                            ),
-                            Text(
-                              dayOfWeek,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDarkMode ? Colors.white : Colors.black,
-                              ),
-                            ),
-                            if (isToday)
-                              Text(
-                                "Today",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                          ],
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                    color: isDarkMode ? Colors.grey[850] : Colors.white,
+                    child: ListTile(
+                      leading: Icon(randomIcon, color: randomColor), // Biểu tượng ngẫu nhiên
+                      title: Text(
+                        task.title,
+                        style: TextStyle(
+                          color: task.status == 'Completed'
+                              ? (isDarkMode ? Colors.yellow : Colors.green)
+                              : (isDarkMode ? Colors.white : Colors.black),
+                          decoration: task.status == 'Completed'
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
                         ),
                       ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-          // Phần hiển thị thông tin hoạt động trong ngày
-          Container(
-            padding: EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Icon(Icons.create, size: 40, color: Colors.blue),
-                // Biểu tượng hoạt động
-                SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Ăn cữ', // Hoạt động
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDarkMode ? Colors.white : Colors.black,
+                      subtitle: Text(
+                        'Start: ${DateFormat('dd/MM/yyyy').format(task.startDate)} - End: ${DateFormat('dd/MM/yyyy').format(task.endDate)}',
+                        style: TextStyle(
+                          color: isDarkMode ? Colors.white54 : Colors.black54,
+                        ),
                       ),
                     ),
-                    Text(
-                      DateFormat('EEEE, dd/MM/yyyy').format(selectedDate),
-                      // Ngày tháng
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDarkMode ? Colors.white70 : Colors.black54,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          // Phần nội dung chính
-          Expanded(
-            child: Center(
-              child: Text(
-                'Welcome to the Favorite Screen',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: isDarkMode ? Colors.white : Colors.black,
-                ),
+                  );
+                },
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-      backgroundColor: isDarkMode ? Colors.black : Colors.white,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) =>
+                AddTask(
+                  userId: widget.userId,
+                  onTaskAdded: _refreshTasks,
+                ),
+          ));
+        },
+        backgroundColor: Colors.blue,
+        child: Icon(Icons.add),
+      ),
     );
   }
 }

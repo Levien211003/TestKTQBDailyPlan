@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:testktdailyplan/data/AuthService.dart'; // Thay đổi theo đường dẫn thực tế
+import 'package:testktdailyplan/model/task.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool isDarkMode; // Thêm tham số isDarkMode
+  final int userId; // Thêm tham số userId
 
-  HomeScreen({required this.isDarkMode}); // Khởi tạo với isDarkMode
+  // Cập nhật hàm khởi tạo để yêu cầu userId
+  HomeScreen({required this.isDarkMode, required this.userId});
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -13,12 +17,28 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  List<Task> tasks = []; // Danh sách nhiệm vụ
+  final AuthService _authService = AuthService(); // Khởi tạo AuthService
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTasks(); // Lấy danh sách nhiệm vụ khi khởi tạo
+  }
+
+  Future<void> _fetchTasks() async {
+    final fetchedTasks = await _authService.getTasksByUser(widget.userId);
+    if (fetchedTasks != null) {
+      setState(() {
+        tasks = fetchedTasks;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: widget.isDarkMode ? Color(0xFF212020) : Colors.white,
-      // Sử dụng isDarkMode để xác định màu nền
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -29,15 +49,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    // Sử dụng Expanded để cho phép căn giữa
                     child: Center(
-                      // Căn giữa chữ "Daily Planner"
                       child: Text(
-                        'DAILY PLANNER', // Chữ in hoa
+                        'DAILY PLANNER',
                         style: TextStyle(
-                          color: widget.isDarkMode
-                              ? Colors.white
-                              : Colors.black, // Thay đổi màu chữ
+                          color: widget.isDarkMode ? Colors.white : Colors.black,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Poppins',
@@ -47,9 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   Icon(
                     Icons.notifications,
-                    color: widget.isDarkMode
-                        ? Colors.white
-                        : Colors.black, // Thay đổi màu icon
+                    color: widget.isDarkMode ? Colors.white : Colors.black,
                   ),
                 ],
               ),
@@ -79,43 +93,30 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 defaultTextStyle: TextStyle(
                     color: widget.isDarkMode ? Colors.white : Colors.black),
-                // Thay đổi màu chữ
                 weekendTextStyle: TextStyle(
-                    color: widget.isDarkMode
-                        ? Colors.white
-                        : Colors.black), // Thay đổi màu chữ
+                    color: widget.isDarkMode ? Colors.white : Colors.black),
               ),
               headerStyle: HeaderStyle(
                 formatButtonVisible: false,
                 titleCentered: true,
                 titleTextStyle: TextStyle(
                   color: widget.isDarkMode ? Colors.white : Colors.black,
-                  // Thay đổi màu chữ tiêu đề
                   fontSize: 18,
                 ),
                 leftChevronIcon: Icon(
                   Icons.chevron_left,
-                  color: widget.isDarkMode
-                      ? Colors.white
-                      : Colors.black, // Thay đổi màu icon
+                  color: widget.isDarkMode ? Colors.white : Colors.black,
                 ),
                 rightChevronIcon: Icon(
                   Icons.chevron_right,
-                  color: widget.isDarkMode
-                      ? Colors.white
-                      : Colors.black, // Thay đổi màu icon
+                  color: widget.isDarkMode ? Colors.white : Colors.black,
                 ),
               ),
               calendarFormat: CalendarFormat.month,
               startingDayOfWeek: StartingDayOfWeek.monday,
               daysOfWeekStyle: DaysOfWeekStyle(
-                weekendStyle: TextStyle(
-                    color: widget.isDarkMode ? Colors.white : Colors.black),
-                // Thay đổi màu chữ
-                weekdayStyle: TextStyle(
-                    color: widget.isDarkMode
-                        ? Colors.white
-                        : Colors.black), // Thay đổi màu chữ
+                weekendStyle: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black),
+                weekdayStyle: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black),
               ),
             ),
             SizedBox(height: 20),
@@ -128,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
 
-            ////Today Task
+            // Today's Tasks
             SizedBox(height: 20),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -160,15 +161,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   SizedBox(height: 10),
-                  // _buildTaskItem('Complete Flutter project', true),
-                  // _buildTaskItem('Morning Exercise', false),
-                  // _buildTaskItem('Read 20 pages of book', false),
+                  // Hiển thị danh sách nhiệm vụ
+                  _buildTaskList(),
                 ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTaskList() {
+    // Lọc nhiệm vụ có ngày kết thúc lớn hơn hôm nay
+    List<Task> upcomingTasks = tasks.where((task) => task.endDate.isAfter(DateTime.now())).toList();
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(), // Ngăn không cho cuộn
+      itemCount: upcomingTasks.length,
+      itemBuilder: (context, index) {
+        Task task = upcomingTasks[index];
+        return _buildTaskItem(task.title, task.status == 'Completed');
+      },
     );
   }
 
@@ -193,28 +208,28 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
     );
   }
-  //
-  // // Widget tạo mục công việc
-  // Widget _buildTaskItem(String taskName, bool completed) {
-  //   return Padding(
-  //     padding: const EdgeInsets.symmetric(vertical: 8.0),
-  //     child: Row(
-  //       children: [
-  //         Icon(
-  //           completed ? Icons.check_circle : Icons.radio_button_unchecked,
-  //           color: completed ? Colors.green : Colors.white,
-  //         ),
-  //         SizedBox(width: 10),
-  //         Text(
-  //           taskName,
-  //           style: TextStyle(
-  //             color: Colors.white,
-  //             fontSize: 16,
-  //             fontFamily: 'Poppins',
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
+
+  // Widget tạo mục công việc
+  Widget _buildTaskItem(String taskName, bool completed) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Icon(
+            completed ? Icons.check_circle : Icons.radio_button_unchecked,
+            color: completed ? Colors.green : Colors.white,
+          ),
+          SizedBox(width: 10),
+          Text(
+            taskName,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontFamily: 'Poppins',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

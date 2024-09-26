@@ -5,6 +5,10 @@ import 'challenge_screen.dart';
 import 'setting_screen.dart';
 
 class Navbar extends StatefulWidget {
+  final int userId; // Thêm tham số userId
+
+  Navbar({required this.userId}); // Thay đổi hàm khởi tạo để yêu cầu userId
+
   @override
   _NavbarState createState() => _NavbarState();
 }
@@ -27,8 +31,8 @@ class _NavbarState extends State<Navbar> {
 
   // Mảng các màn hình, thêm các màn hình khác nếu cần
   List<Widget> get _screens => [
-    HomeScreen(isDarkMode: isDarkMode), // Truyền tham số isDarkMode
-    ListScreen(isDarkMode: isDarkMode), // Truyền tham số isDarkMode
+    HomeScreen(isDarkMode: isDarkMode, userId: widget.userId), // Truyền tham số userId
+    ListScreen(isDarkMode: isDarkMode, userId: widget.userId), // Truyền tham số isDarkMode
     ChallengeScreen(isDarkMode: isDarkMode), // Truyền tham số isDarkMode
     SettingScreen(isDarkMode: isDarkMode, onDarkModeChanged: _toggleDarkMode), // Truyền tham số và callback
   ];
