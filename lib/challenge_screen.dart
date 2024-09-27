@@ -48,7 +48,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     DateTime today = DateTime.now();
 
     // Tạo danh sách ngày với 182 ngày trước và 182 ngày sau
-    for (int i = -0; i <= 14; i++) {
+    for (int i = -0; i <= 19; i++) {
       dates.add(today.add(Duration(days: i)));
     }
 

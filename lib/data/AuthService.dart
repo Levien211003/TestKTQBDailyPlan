@@ -125,4 +125,19 @@ class AuthService {
 
     return response.statusCode == 204;
   }
+
+  // PUT: Cập nhật ưu tiên của công việc
+  Future<bool> updatePriority(int taskId, int priority) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/Tasks/$taskId/priority'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(priority), // Gửi giá trị priority dưới dạng body
+    );
+
+    // Gỡ lỗi phản hồi
+    print('Update Priority Response status: ${response.statusCode}');
+    print('Update Priority Response body: ${response.body}');
+
+    return response.statusCode == 204; // Trả về true nếu thành công
+  }
 }

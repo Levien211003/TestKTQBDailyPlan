@@ -3,7 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:testktdailyplan/data/AuthService.dart';
 import 'package:testktdailyplan/model/task.dart';
 import 'addtask.dart';
-import 'dart:math'; // Thêm import này
+import 'dart:math';
+import 'taskdetails.dart';
 
 class ListScreen extends StatefulWidget {
   final bool isDarkMode;
@@ -90,7 +91,7 @@ class _ListScreenState extends State<ListScreen> {
 
   List<DateTime> getDates() {
     DateTime today = DateTime.now();
-    return List.generate(15, (index) => today.add(Duration(days: index)));
+    return List.generate(19, (index) => today.add(Duration(days: index)));
   }
 
   void _refreshTasks() {
@@ -288,42 +289,7 @@ class _ListScreenState extends State<ListScreen> {
                   ),
                 ),
               )
-                  : ListView.builder(
-                itemCount: filteredTasks.length,
-                itemBuilder: (context, index) {
-                  Task task = filteredTasks[index];
-
-                  // Chọn ngẫu nhiên biểu tượng và màu sắc
-                  final randomIndex = Random().nextInt(_icons.length);
-                  IconData randomIcon = _icons[randomIndex];
-                  Color randomColor = _colors[randomIndex];
-
-                  return Card(
-                    margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                    color: isDarkMode ? Colors.grey[850] : Colors.white,
-                    child: ListTile(
-                      leading: Icon(randomIcon, color: randomColor), // Biểu tượng ngẫu nhiên
-                      title: Text(
-                        task.title,
-                        style: TextStyle(
-                          color: task.status == 'Completed'
-                              ? (isDarkMode ? Colors.yellow : Colors.green)
-                              : (isDarkMode ? Colors.white : Colors.black),
-                          decoration: task.status == 'Completed'
-                              ? TextDecoration.lineThrough
-                              : TextDecoration.none,
-                        ),
-                      ),
-                      subtitle: Text(
-                        'Start: ${DateFormat('dd/MM/yyyy').format(task.startDate)} - End: ${DateFormat('dd/MM/yyyy').format(task.endDate)}',
-                        style: TextStyle(
-                          color: isDarkMode ? Colors.white54 : Colors.black54,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
+                  : _buildPriorityContainers(),
             ),
           ],
         ),
@@ -331,15 +297,119 @@ class _ListScreenState extends State<ListScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) =>
-                AddTask(
-                  userId: widget.userId,
-                  onTaskAdded: _refreshTasks,
-                ),
+            builder: (context) => AddTask(
+              userId: widget.userId,
+              onTaskAdded: _refreshTasks,
+            ),
           ));
         },
         backgroundColor: Colors.blue,
         child: Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildPriorityContainers() {
+    // Phân loại task theo priority
+    List<Task> priority1Tasks = filteredTasks.where((task) => task.priority == 1).toList();
+    List<Task> priority2Tasks = filteredTasks.where((task) => task.priority == 2).toList();
+    List<Task> priority3Tasks = filteredTasks.where((task) => task.priority == 3).toList();
+
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildPriorityContainer("Priority 1", priority1Tasks),
+          _buildPriorityContainer("Priority 2", priority2Tasks),
+          _buildPriorityContainer("Priority 3", priority3Tasks),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriorityContainer(String title, List<Task> tasks) {
+    return Container(
+      padding: EdgeInsets.all(10),
+      margin: EdgeInsets.symmetric(vertical: 5),
+      color: Colors.grey[300],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          ReorderableListView(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            onReorder: (int oldIndex, int newIndex) async {
+              // Điều chỉnh vị trí newIndex nếu cần thiết
+              if (newIndex > oldIndex) {
+                newIndex -= 1;
+              }
+
+              // Cập nhật vị trí các mục trong danh sách
+              setState(() {
+                final task = tasks.removeAt(oldIndex);
+                tasks.insert(newIndex, task);
+              });
+
+              // Cập nhật ưu tiên của chỉ một công việc sau khi kéo thả
+              final task = tasks[newIndex]; // Lấy task đã được thay đổi vị trí
+              final newPriority = newIndex + 1; // Thiết lập ưu tiên mới dựa trên vị trí
+
+              // Cập nhật trong cơ sở dữ liệu
+              final success = await _authService.updatePriority(task.taskID!, newPriority);
+
+              if (success) {
+                setState(() {
+                  task.priority = newPriority; // Cập nhật giá trị priority trong danh sách
+                });
+              }
+            },
+
+            children: List.generate(tasks.length, (index) {
+              Task task = tasks[index];
+
+              // Chọn ngẫu nhiên biểu tượng và màu sắc
+              final randomIndex = Random().nextInt(_icons.length);
+              IconData randomIcon = _icons[randomIndex];
+              Color randomColor = _colors[randomIndex];
+
+              return Card(
+                key: ValueKey(task.taskID),
+                margin: EdgeInsets.symmetric(vertical: 5),
+                color: isDarkMode ? Colors.grey[850] : Colors.white,
+                child: ListTile(
+                  leading: Icon(randomIcon, color: randomColor),
+                  title: Text(
+                    task.title,
+                    style: TextStyle(
+                      color: task.status == 'Completed'
+                          ? (isDarkMode ? Colors.yellow : Colors.green)
+                          : (isDarkMode ? Colors.white : Colors.black),
+                      decoration: task.status == 'Completed'
+                          ? TextDecoration.lineThrough
+                          : TextDecoration.none,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Start: ${DateFormat('dd/MM/yyyy').format(task.startDate)} - End: ${DateFormat('dd/MM/yyyy').format(task.endDate)}',
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white54 : Colors.black54,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => TaskDetails(task: task),
+                      ),
+                    );
+                  },
+                ),
+              );
+            }),
+          ),
+        ],
       ),
     );
   }
