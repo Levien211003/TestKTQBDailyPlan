@@ -1,283 +1,235 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'create_challenge.dart'; // Nhập trang CreateChallenge
+import 'package:fl_chart/fl_chart.dart';
+import 'package:testktdailyplan/model/task.dart';
+import 'package:testktdailyplan/data/AuthService.dart';
 
 class ChallengeScreen extends StatefulWidget {
   final bool isDarkMode;
+  final int userId;
 
-  ChallengeScreen({required this.isDarkMode});
+  ChallengeScreen({required this.isDarkMode, required this.userId});
 
   @override
   _ChallengeScreenState createState() => _ChallengeScreenState();
 }
 
 class _ChallengeScreenState extends State<ChallengeScreen> {
-  late bool isDarkMode;
-  late ScrollController _scrollController;
-  late List<DateTime> dates;
-  late int currentDateIndex;
-  String selectedMonth = "";
-  late DateTime selectedDate; 
+  late Future<List<Task>?> _tasks;
 
   @override
   void initState() {
     super.initState();
-    isDarkMode = widget.isDarkMode;
-    _scrollController = ScrollController();
-    dates = getDates();
-    selectedDate = DateTime.now(); // Mặc định chọn ngày hôm nay
-
-    // Tìm chỉ số của ngày hôm nay
-    currentDateIndex = dates.indexWhere((date) =>
-        date.year == DateTime.now().year &&
-        date.month == DateTime.now().month &&
-        date.day == DateTime.now().day);
-
-    // Đặt vị trí cuộn về giữa danh sách (ngày hôm nay)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollController
-          .jumpTo(currentDateIndex * 88.0); // Chiều rộng của từng item
-    });
-
-    // Thiết lập tháng hiện tại là tháng của ngày hôm nay
-    selectedMonth = DateFormat('MMMM').format(DateTime.now());
+    _loadTasks(); // Tải danh sách công việc khi màn hình được khởi tạo
   }
 
-  List<DateTime> getDates() {
-    List<DateTime> dates = [];
-    DateTime today = DateTime.now();
-
-    // Tạo danh sách ngày với 182 ngày trước và 182 ngày sau
-    for (int i = -0; i <= 19; i++) {
-      dates.add(today.add(Duration(days: i)));
-    }
-
-    return dates;
-  }
-
-  void _onDateTap(int index) {
-    setState(() {
-      currentDateIndex = index;
-      selectedDate = dates[index];
-      // Cập nhật tháng khi người dùng nhấn vào ngày
-      selectedMonth = DateFormat('MMMM').format(selectedDate);
-    });
-    // Xử lý sự kiện nhấn vào ngày, có thể thêm logic ở đây
-    print('Selected Date: $selectedDate');
-  }
-
-  void _onSwipe(DragUpdateDetails details) {
-    if (details.delta.dx > 0) {
-      // Vuốt sang trái
-      if (currentDateIndex > 0) {
-        _scrollController.jumpTo(_scrollController.position.pixels - 88);
-        _onDateTap(currentDateIndex - 1);
-      }
-    } else if (details.delta.dx < 0) {
-      // Vuốt sang phải
-      if (currentDateIndex < dates.length - 1) {
-        _scrollController.jumpTo(_scrollController.position.pixels + 88);
-        _onDateTap(currentDateIndex + 1);
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _navigateToCreateChallenge() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => CreateChallenge()),
-    );
+  void _loadTasks() {
+    AuthService authService = AuthService();
+    _tasks = authService.getTasksByUser(widget.userId);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Center(
-          child: Text(
-            selectedMonth.toUpperCase(),
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: isDarkMode ? Colors.white : Colors.black,
-            ),
-          ),
-        ),
-        backgroundColor: isDarkMode ? Color(0xFF44462E) : Colors.white,
+        title: Text('Quá Trình' ,style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: widget.isDarkMode ? Colors.white : Colors.black,
+        ),),
+        backgroundColor: widget.isDarkMode ? Color(0xFF44462E) : Colors.blue,
         automaticallyImplyLeading: false,
       ),
-      body: Column(
-        children: [
-          // Phần hiển thị tháng và các ngày
-          Container(
-            padding: EdgeInsets.all(10),
-            color: isDarkMode ? Color(0xFF44462E) : Colors.grey[200],
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  DateFormat('dd MMMM yyyy').format(DateTime.now()),
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : Colors.black,
+      body: Container(
+        color: widget.isDarkMode ? Colors.black : Colors.white, // Thay đổi màu nền ở đây
+        child: FutureBuilder<List<Task>?>(  // Chờ danh sách các công việc
+          future: _tasks,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Error: ${snapshot.error}', style: TextStyle(color: Colors.red)),
+                    ElevatedButton(
+                      onPressed: _loadTasks,
+                      child: Text('Retry'),
+                    ),
+                  ],
+                ),
+              );
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(child: Text('No tasks available.'));
+            }
+
+            final tasks = snapshot.data!;
+            final newTasks = tasks.where((task) => task.status == 'New').toList();
+            final inProgressTasks = tasks.where((task) => task.status == 'Inprogress').toList();
+            final completedTasks = tasks.where((task) => task.status == 'Completed').toList();
+
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  // Biểu đồ hình tròn hiển thị số lượng công việc
+                  SizedBox(
+                    height: 200,
+                    child: PieChart(
+                      PieChartData(
+                        sections: [
+                          PieChartSectionData(
+                            value: newTasks.length.toDouble(),
+                            title: 'New\n${newTasks.length}',
+                            color: Colors.red,
+                            radius: 50,
+                          ),
+                          PieChartSectionData(
+                            value: inProgressTasks.length.toDouble(),
+                            title: 'In Progress\n${inProgressTasks.length}',
+                            color: Colors.blue,
+                            radius: 50,
+                          ),
+                          PieChartSectionData(
+                            value: completedTasks.length.toDouble(),
+                            title: 'Completed\n${completedTasks.length}',
+                            color: Colors.green,
+                            radius: 50,
+                          ),
+                        ],
+                        borderData: FlBorderData(show: false),
+                        sectionsSpace: 0,
+                        centerSpaceRadius: 40,
+                      ),
+                    ),
                   ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.add,
-                      color: isDarkMode ? Colors.white : Colors.black),
-                  onPressed:
-                      _navigateToCreateChallenge, // Điều hướng tới CreateChallenge
-                ),
-              ],
+                  SizedBox(height: 16),
+                  // Tổng số công việc
+                  Text(
+                    'Total Tasks: ${tasks.length}',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: widget.isDarkMode ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildTaskColumn('New Tasks', newTasks, Colors.red),
+                        _buildTaskColumn('In Progress', inProgressTasks, Colors.blue),
+                        _buildTaskColumn('Completed', completedTasks, Colors.green),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTaskColumn(String title, List<Task> tasks, Color color) {
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+          color: widget.isDarkMode ? Colors.grey[850] : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              offset: Offset(0, 2),
+              blurRadius: 4,
             ),
-          ),
-          // Phần hiển thị thanh lịch cuộn ngang
-          GestureDetector(
-            onHorizontalDragUpdate: _onSwipe,
-            child: Container(
-              height: 100, // Chiều cao cố định cho thanh lịch
-              padding: EdgeInsets.symmetric(vertical: 10),
-              child: ScrollConfiguration(
-                behavior: ScrollBehavior().copyWith(overscroll: true),
-                // Loại bỏ hiệu ứng cuộn
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: widget.isDarkMode ? Colors.white : Colors.black,
+                ),
+              ),
+            ),
+            if (tasks.isNotEmpty)
+              Expanded(
                 child: ListView.builder(
-                  controller: _scrollController,
-                  scrollDirection: Axis.horizontal,
-                  itemCount: dates.length,
+                  itemCount: tasks.length,
                   itemBuilder: (context, index) {
-                    DateTime date = dates[index];
-                    String formattedDate = DateFormat('dd').format(date);
-                    String dayOfWeek = DateFormat('E').format(date);
-                    bool isToday = date.year == DateTime.now().year &&
-                        date.month == DateTime.now().month &&
-                        date.day == DateTime.now().day;
-
-                    // Kiểm tra tháng của ngày hiện tại
-                    String monthDisplay = (date.month != DateTime.now().month)
-                        ? DateFormat('MMMM').format(date)
-                        : '';
-
-                    return GestureDetector(
-                      onTap: () => _onDateTap(index),
-                      child: Container(
-                        width: 80,
-                        // Chiều rộng cố định cho mỗi item
-                        margin: EdgeInsets.symmetric(horizontal: 4),
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: isToday
-                              ? Colors.blue
-                              : (isDarkMode
-                                  ? Colors.grey[800]
-                                  : Colors.grey[300]),
-                          borderRadius: BorderRadius.circular(8),
+                    final task = tasks[index];
+                    return Card(
+                      margin: EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+                      color: color, // Sử dụng màu tương ứng với từng cột
+                      child: ListTile(
+                        title: Text(
+                          task.title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: widget.isDarkMode ? Colors.white : Colors.black,
+                          ),
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (monthDisplay.isNotEmpty)
-                              Text(
-                                monthDisplay,
-                                // Hiển thị tháng nếu không cùng tháng với hôm nay
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color:
-                                      isDarkMode ? Colors.white : Colors.black,
-                                ),
-                              ),
                             Text(
-                              formattedDate,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: isToday
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                color: isToday
-                                    ? Colors.white
-                                    : (isDarkMode
-                                        ? Colors.white
-                                        : Colors.black),
-                              ),
+                              'Start Date: ${task.startDate.toLocal()}',
+                              style: TextStyle(color: widget.isDarkMode ? Colors.grey[300] : Colors.black),
                             ),
                             Text(
-                              dayOfWeek,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDarkMode ? Colors.white : Colors.black,
-                              ),
+                              'End Date: ${task.endDate.toLocal()}',
+                              style: TextStyle(color: widget.isDarkMode ? Colors.grey[300] : Colors.black),
                             ),
-                            if (isToday)
-                              Text(
-                                "Today",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
                           ],
+                        ),
+                        trailing: Checkbox(
+                          value: task.status == 'Completed', // Kiểm tra trạng thái của task
+                          onChanged: (value) {
+                            // Cập nhật trạng thái của task khi checkbox được tích hoặc bỏ
+                            String newStatus = value == true ? 'Completed' : 'Inprogress'; // Cập nhật trạng thái
+
+                            // Gọi API để cập nhật trạng thái trên server
+                            AuthService authService = AuthService();
+                            authService.updateTaskStatus(task.taskID!, newStatus).then((success) {
+                              if (success) {
+                                setState(() {
+                                  task.status = newStatus; // Cập nhật trạng thái trong UI
+                                });
+                              } else {
+                                // Nếu có lỗi, bạn có thể hiển thị thông báo lỗi cho người dùng
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                  content: Text('Failed to update task status.'),
+                                ));
+                              }
+                            });
+                          },
+                          activeColor: Colors.green, // Màu xanh khi checkbox được tích
                         ),
                       ),
                     );
                   },
                 ),
-              ),
-            ),
-          ),
-          // Phần hiển thị thông tin hoạt động trong ngày
-          Container(
-            padding: EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Icon(Icons.create, size: 40, color: Colors.blue),
-                // Biểu tượng hoạt động
-                SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Ăn cữ', // Hoạt động
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDarkMode ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    Text(
-                      DateFormat('EEEE, dd/MM/yyyy').format(selectedDate),
-                      // Ngày tháng
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDarkMode ? Colors.white70 : Colors.black54,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          // Phần nội dung chính
-          Expanded(
-            child: Center(
-              child: Text(
-                ' Co thoi gian se phat trien them ',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: isDarkMode ? Colors.white : Colors.black,
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'No tasks available in this category.',
+                  style: TextStyle(color: widget.isDarkMode ? Colors.white70 : Colors.black),
                 ),
               ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
-      backgroundColor: isDarkMode ? Colors.black : Colors.white,
     );
   }
 }

@@ -167,4 +167,22 @@ class AuthService {
 
     return response.statusCode == 204; // Trả về true nếu thành công
   }
+
+  // PUT: Cập nhật trạng thái của công việc
+  Future<bool> updateTaskStatus(int taskId, String status) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/Tasks/$taskId/status'), // Đường dẫn đúng
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(status), // Chỉ gửi chuỗi trạng thái
+    );
+
+    // Gỡ lỗi phản hồi
+    print('Update Status Response status: ${response.statusCode}');
+    print('Update Status Response body: ${response.body}');
+
+    return response.statusCode == 204; // Trả về true nếu cập nhật thành công
+  }
+
 }

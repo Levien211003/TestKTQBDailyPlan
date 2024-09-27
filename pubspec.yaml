@@ -29,6 +29,8 @@ dev_dependencies:
   provider: ^6.0.0
   table_calendar: ^3.0.0
   flutter_colorpicker: ^1.0.3
+  fl_chart: ^0.69.0  # Hạ xuống phiên bản ổn định hơn
+
 
 
 
