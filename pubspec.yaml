@@ -30,6 +30,9 @@ dev_dependencies:
   table_calendar: ^3.0.0
   flutter_colorpicker: ^1.0.3
   fl_chart: ^0.69.0  # Hạ xuống phiên bản ổn định hơn
+  timezone: ^0.9.4
+  flutter_local_notifications: ^17.2.3
+
 
 
 

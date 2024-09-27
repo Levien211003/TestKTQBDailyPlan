@@ -4,7 +4,10 @@ import 'package:testktdailyplan/model/task.dart';
 import 'package:testktdailyplan/data/AuthService.dart'; // Import AuthService để gọi delete
 import 'package:testktdailyplan/list_screen.dart'; // Import màn hình ListScreen
 import 'package:shared_preferences/shared_preferences.dart';
-import 'edittask.dart';// Import SharedPreferences để lấy userId
+import 'edittask.dart'; // Import SharedPreferences để lấy userId
+import 'package:testktdailyplan/model/taskreminder.dart'; // Import TaskReminder model
+import 'package:testktdailyplan/data/ReminderService.dart'; // Import ReminderService
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // Import thư viện thông báo
 
 class TaskDetails extends StatefulWidget {
   final Task task;
@@ -17,8 +20,11 @@ class TaskDetails extends StatefulWidget {
 
 class _TaskDetailsState extends State<TaskDetails> {
   late Task task; // Khai báo biến task không final
-
   final AuthService authService = AuthService(); // Khởi tạo AuthService để gọi các API
+  final ReminderService reminderService = ReminderService(); // Khởi tạo ReminderService để xử lý nhắc nhở
+
+  DateTime? selectedDateTime; // Thời gian nhắc nhở đã chọn
+  bool isNotified = false; // Trạng thái nhắc nhở (bật/tắt)
 
   @override
   void initState() {
@@ -41,7 +47,6 @@ class _TaskDetailsState extends State<TaskDetails> {
           },
         ),
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
@@ -56,6 +61,12 @@ class _TaskDetailsState extends State<TaskDetails> {
             _buildTaskDetailRow('Ghi chú', task.notes ?? 'N/A', Icons.note, isDarkMode),
             _buildTaskDetailRow('Tạo vào', DateFormat('dd/MM/yyyy').format(task.createdAt), Icons.create, isDarkMode),
             _buildTaskDetailRow('Cập nhật vào', DateFormat('dd/MM/yyyy').format(task.updatedAt), Icons.update, isDarkMode),
+
+            // DateTime Picker for reminder
+            _buildReminderPicker(isDarkMode),
+
+            // Switch to enable/disable reminder
+            _buildReminderSwitch(isDarkMode),
           ],
         ),
       ),
@@ -166,6 +177,84 @@ class _TaskDetailsState extends State<TaskDetails> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // Widget for DateTime Picker
+  Widget _buildReminderPicker(bool isDarkMode) {
+    return Card(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      color: isDarkMode ? Colors.grey[850] : Colors.white,
+      elevation: 4,
+      child: ListTile(
+        leading: Icon(Icons.alarm, color: isDarkMode ? Colors.yellow : Colors.blue),
+        title: Text("Thời gian nhắc nhở", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
+        subtitle: Text(
+          selectedDateTime != null
+              ? DateFormat('dd/MM/yyyy HH:mm').format(selectedDateTime!)
+              : "Chưa chọn thời gian",
+          style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black54),
+        ),
+        onTap: () async {
+          final DateTime? picked = await showDatePicker(
+            context: context,
+            initialDate: selectedDateTime ?? DateTime.now(),
+            firstDate: DateTime.now(),
+            lastDate: DateTime(2101),
+          );
+
+          if (picked != null) {
+            final TimeOfDay? time = await showTimePicker(
+              context: context,
+              initialTime: TimeOfDay.now(),
+            );
+
+            if (time != null) {
+              setState(() {
+                selectedDateTime = DateTime(
+                  picked.year,
+                  picked.month,
+                  picked.day,
+                  time.hour,
+                  time.minute,
+                );
+              });
+            }
+          }
+        },
+      ),
+    );
+  }
+
+  // Widget for Switch to enable/disable reminder
+  Widget _buildReminderSwitch(bool isDarkMode) {
+    return Card(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      color: isDarkMode ? Colors.grey[850] : Colors.white,
+      elevation: 4,
+      child: SwitchListTile(
+        activeColor: isDarkMode ? Colors.yellow : Colors.blue,
+        title: Text("Bật nhắc nhở", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
+        value: isNotified,
+        onChanged: (bool value) async {
+          setState(() {
+            isNotified = value;
+          });
+          if (isNotified && selectedDateTime != null) {
+            // Đặt nhắc nhở nếu bật và đã chọn thời gian
+            await reminderService.scheduleTaskReminder(task.taskID!, task.title, selectedDateTime!);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Nhắc nhở đã được đặt!')),
+            );
+          } else if (!isNotified) {
+            // Tắt nhắc nhở
+            await reminderService.cancelTaskReminder(task.taskID!);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Nhắc nhở đã tắt.')),
+            );
+          }
+        },
       ),
     );
   }
