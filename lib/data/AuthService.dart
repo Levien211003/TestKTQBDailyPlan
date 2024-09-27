@@ -6,6 +6,7 @@ import 'package:testktdailyplan/model/user.dart';
 
 class AuthService {
   static const String baseUrl = 'http://192.168.1.9:7103/api';
+  int? _currentUserId; // Biến để lưu ID người dùng hiện tại
 
   Future<String?> registerUser(User user) async {
     final Map<String, dynamic> userData = {
@@ -35,7 +36,6 @@ class AuthService {
     }
   }
 
-  // Phương thức đăng nhập
   Future<Map<String, dynamic>?> login(String email, String password) async {
     final response = await http.post(
       Uri.parse('$baseUrl/Users/login'),
@@ -57,7 +57,8 @@ class AuthService {
 
       // Lưu userID
       if (data['user']['userID'] != null) {
-        await prefs.setInt('userID', data['user']['userID']);
+        _currentUserId = data['user']['userID']; // Lưu vào biến
+        await prefs.setInt('userID', _currentUserId!); // Lưu vào SharedPreferences
         return data['user']; // Trả về đối tượng người dùng
       }
 
@@ -66,6 +67,9 @@ class AuthService {
       return null; // Đăng nhập không thành công
     }
   }
+
+  int? get currentUserId => _currentUserId; // Getter để lấy ID người dùng hiện tại
+
 
   // GET: Lấy danh sách công việc của người dùng
   Future<List<Task>?> getTasksByUser(int userId) async {
@@ -105,21 +109,44 @@ class AuthService {
     }
   }
 
-  // PUT: Chỉnh sửa công việc
-  Future<bool> updateTask(int taskId, Task task) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/tasks/$taskId'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(task.toJson()),
-    );
+  Future<bool> updateTask(Task task) async {
+    // Thực hiện cuộc gọi API để cập nhật công việc
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/Tasks/${task.taskID}'), // Sử dụng taskID từ đối tượng Task
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'TaskID': task.taskID, // Thêm TaskID vào JSON
+          'UserID': task.userID, // Thêm UserID
+          'Title': task.title, // Thêm Title
+          'StartDate': task.startDate.toIso8601String(), // Chuyển đổi DateTime sang ISO 8601
+          'EndDate': task.endDate.toIso8601String(), // Chuyển đổi DateTime sang ISO 8601
+          'Location': task.location, // Thêm Location
+          'AssignedTo': task.assignedTo, // Thêm AssignedTo
+          'Status': task.status, // Thêm Status
+          'Priority': task.priority, // Thêm Priority
+          'Notes': task.notes, // Thêm Notes
+        }),
+      );
 
-    return response.statusCode == 204;
+      print('Update Task Response status: ${response.statusCode}'); // Gỡ lỗi phản hồi
+      print('Update Task Response body: ${response.body}');
+
+      return response.statusCode == 204; // Trả về true nếu cập nhật thành công
+    } catch (e) {
+      // Xử lý ngoại lệ
+      print('Lỗi khi cập nhật công việc: $e');
+      return false;
+    }
   }
+
 
   // DELETE: Xóa công việc
   Future<bool> deleteTask(int taskId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/tasks/$taskId'),
+      Uri.parse('$baseUrl/Tasks/$taskId'),
       headers: {'Content-Type': 'application/json'},
     );
 

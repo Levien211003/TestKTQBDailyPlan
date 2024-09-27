@@ -267,7 +267,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           Expanded(
             child: Center(
               child: Text(
-                'Welcome to the Favorite Screen',
+                ' Co thoi gian se phat trien them ',
                 style: TextStyle(
                   fontSize: 18,
                   color: isDarkMode ? Colors.white : Colors.black,

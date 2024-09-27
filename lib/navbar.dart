@@ -59,7 +59,7 @@ class _NavbarState extends State<Navbar> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart),
-            label: 'Thử Thách',
+            label: 'Quá Trình',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),

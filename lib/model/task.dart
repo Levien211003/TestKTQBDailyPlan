@@ -1,16 +1,16 @@
 class Task {
-  int? taskID;
-  int userID;
-  String title;
-  DateTime startDate;
-  DateTime endDate;
-  String? location;
-  String? assignedTo;
-  String status;
-  int priority;
-  String? notes;
-  DateTime createdAt;
-  DateTime updatedAt;
+  int? taskID; // taskID là có thể null
+  final int userID; // userID là bắt buộc
+  final String title; // title là bắt buộc
+  final DateTime startDate; // startDate là bắt buộc
+  final DateTime endDate; // endDate là bắt buộc
+  String? location; // location là có thể null
+  String? assignedTo; // assignedTo là có thể null
+  String status; // status là bắt buộc, mặc định là 'New'
+  int priority; // priority là bắt buộc, mặc định là 1
+  String? notes; // notes là có thể null
+  final DateTime createdAt; // createdAt mặc định là thời gian hiện tại
+  final DateTime updatedAt; // updatedAt mặc định là thời gian hiện tại
 
   // Constructor
   Task({
@@ -26,11 +26,10 @@ class Task {
     this.notes,
     DateTime? createdAt,
     DateTime? updatedAt,
-  })
-      : createdAt = createdAt ?? DateTime.now(),
+  })  : createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
 
-  // From JSON (chuyển từ JSON sang Task object)
+  // From JSON
   factory Task.fromJson(Map<String, dynamic> json) {
     return Task(
       taskID: json['taskID'],
@@ -48,8 +47,7 @@ class Task {
     );
   }
 
-  // To JSON (chuyển từ Task object sang JSON)
-  // To JSON (chuyển từ Task object sang JSON)
+  // To JSON
   Map<String, dynamic> toJson() {
     return {
       'userID': userID,

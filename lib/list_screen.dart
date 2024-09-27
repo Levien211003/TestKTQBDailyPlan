@@ -9,6 +9,8 @@ import 'taskdetails.dart';
 class ListScreen extends StatefulWidget {
   final bool isDarkMode;
   final int userId;
+  Offset floatingButtonOffset = Offset(30, 30); // Vị trí khởi tạo của nút
+
 
   ListScreen({required this.isDarkMode, required this.userId});
 
@@ -294,17 +296,25 @@ class _ListScreenState extends State<ListScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => AddTask(
-              userId: widget.userId,
-              onTaskAdded: _refreshTasks,
-            ),
-          ));
-        },
-        backgroundColor: Colors.blue,
-        child: Icon(Icons.add),
+      floatingActionButton: Stack(
+        children: [
+        Positioned(
+        right: 30, // Đặt khoảng cách từ bên phải
+        bottom: 30, // Đặt khoảng cách từ đáy
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => AddTask(
+                userId: widget.userId,
+                onTaskAdded: _refreshTasks,
+              ),
+            ));
+          },
+          backgroundColor: Colors.blue,
+          child: Icon(Icons.add),
+        ),
+        ),
+        ],
       ),
     );
   }
@@ -330,13 +340,15 @@ class _ListScreenState extends State<ListScreen> {
     return Container(
       padding: EdgeInsets.all(10),
       margin: EdgeInsets.symmetric(vertical: 5),
-      color: Colors.grey[300],
+      color: isDarkMode ? Colors.black : Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold
+            ,                    color: isDarkMode ? Colors.white : Colors.black,
+            ),
           ),
           ReorderableListView(
             shrinkWrap: true,
@@ -398,13 +410,19 @@ class _ListScreenState extends State<ListScreen> {
                       color: isDarkMode ? Colors.white54 : Colors.black54,
                     ),
                   ),
-                  onTap: () {
-                    Navigator.of(context).push(
+                  onTap: () async {
+                    final result = await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => TaskDetails(task: task),
                       ),
                     );
+
+                    // Nếu kết quả trả về là true, làm mới dữ liệu
+                    if (result == true) {
+                      _fetchTasks(); // Gọi hàm để làm mới dữ liệu
+                    }
                   },
+
                 ),
               );
             }),
